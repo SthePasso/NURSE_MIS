@@ -8,7 +8,8 @@ from PIL import Image
 from scipy import ndimage, misc
 import json
 import math
-
+import picamera
+import picamera.array
 
     
 class NurseMis:
@@ -37,14 +38,32 @@ class NurseMis:
 
 
     # Gets and Sets
-    def getImageJson(self, image):
-        return json.loads(image)
+    def getImageJson(self, imgJSON):
+        imgLIST = json.loads(imgJSON)
+        imgNP = np.array(imgLIST)
+        imgIMG = (Image.fromarray(imgNP).resize(320,320))
+        return imgIMG
 
     def getImage(self):
-        image = [[1,2],[3,4]]
+        #image = [[1,2],[3,4]]
         #print(json.dumps(image))
-        return json.dumps(image)
+        with picamera.PiCamera() as camera:
+            with picamera.array.PiRGBArray(camera) as output:
+                camera.resolution = (64,64)
+                camera.capture(output, 'rgb')
+                #print('Captured %dx%d image' % (output.array.shape[1], output.array.shape[0]))
+                #print(output.array)
+                image = output.array
+        pilimage = Image.fromarray(image).resize((24,24))
+        b = image.tolist() # nested lists with same data, indices
+        #file_path = "data.json" ## your path variable
+        #return json.dumps(b)
+        return json.dumps(np.array(pilimage).tolist())
+        #return json.dumps(image)
     #arm
+    def image(self):
+        return json.dumps(mpimg.imread("tflite_models/george.jpg"))
+
     def getArm(self):
         return self.arm
     def setArm(self, newArm):
@@ -255,9 +274,14 @@ class Smart():
         self.tfLite_Model = tflite_model
 
     def interfaceClassification(self, img):
-        print(img)
-        print("I got it!")
-        return 5
+        #print(img)
+        if(img[0][0]==1):
+            print("Colin with if",5,"will receive the medicine")
+            return 5
+        else:
+            print("Id not found")
+        #print("I got it!")
+        return 404
 
     def reshape_image(self, img):
         #image = np.reshape(img.shape[0],img.shape[0])
@@ -317,7 +341,7 @@ class Smart():
         result[1:] = result[1:] - result[:-1]
         return result
     
-    def interface(self, img):
+    def interfaceTFLite(self, img):
         image = self.reshape_image(img)
         print("Image of interface", type(image))
 
@@ -326,7 +350,6 @@ class Smart():
         output_details = tflite_interpreter.get_output_details()
         
         tflite_interpreter.resize_tensor_input(input_details[0]['index'], (50,37)) #(322, 50,37, 1)
-        #tflite_interpreter.resize_tensor_input(input_details[0]['index'], image.shape)
         tflite_interpreter.resize_tensor_input(output_details[0]['index'], (1, 7))
         tflite_interpreter.allocate_tensors()
         input_details = tflite_interpreter.get_input_details()
@@ -356,7 +379,7 @@ class Smart():
         TFLITE_MODEL = "tflite_models/model_conv2d.tflite"
         image = mpimg.imread("tflite_models/george.jpg")
         #self.reshape_image(image)
-        tflite_model_predictions = self.interface(image)
+        tflite_model_predictions = self.interfaceTFLite(image)
         print("Prediction: ", tflite_model_predictions)
         #self.plot_result(tflite_model_predictions, image)
 

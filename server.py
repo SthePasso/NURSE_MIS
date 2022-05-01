@@ -4,8 +4,8 @@
 import random
 import time
 #####
-from nurse_mis import NurseMis, ObservationSpace, Smart
-
+#from nurse_mis import NurseMis, ObservationSpace
+from Smart import Smart
 from paho.mqtt import client as mqtt_client
 
 
@@ -16,9 +16,9 @@ topic = "python/mqtt"
 client_id = f'python-mqtt-{random.randint(0, 1000)}'
 username = 'emqx'
 password = 'public'
-AnaNeri = NurseMis("Ana Neri", "Hi I am NURSE MIS!") # the first nurse in Brasil (1814)
-Brain = Smart("tflite_models/model_conv2d.tflite")
-House = ObservationSpace("House")
+#AnaNeri = NurseMis("Ana Neri", "Hi I am NURSE MIS!") # the first nurse in Brasil (1814)
+Brain = Smart("tflite_models/model_conv2d.tflite", "tf_models/model_conv2D.h5")
+#House = ObservationSpace("House")
     
 imageTopic = "Bb4Qimages"
 orderTopic = "abc123sendAOrder"
@@ -34,21 +34,25 @@ def connect_mqtt():
     client.username_pw_set(username, password)
     client.on_connect = on_connect
     client.connect(broker, port)
-    client.AnaNeri = AnaNeri
-    client.House = House
+    #client.AnaNeri = AnaNeri
+    #client.House = House
     client.Brain = Brain
     return client
 
 
 
 def on_message(client, userdata, msg):
-        print(f"Image `{msg.payload.decode()}` from `{msg.topic}` topic")
-        time.sleep(1)
+        time.sleep(5)
+        #print(f"Image `{msg.payload.decode()}` from `{msg.topic}` topic")
+        print(f"Image from camera send to `{msg.topic}` topic")
         position = 7
-        position = AnaNeri.getImageJson(msg.payload)
-        print("position: ", position)
-        id = Brain.interfaceClassification(position)
+        image = Brain.getImageJson(msg.payload)
+        #id = Brain.interfaceClassification(image)
+        id = Brain.interfaceTF(image)
+        print("Id: ", id)
         client.publish(orderTopic, id)
+        time.sleep(5)
+
         #AnaNeri.moveSubscribe(position, House)
 
 

@@ -4,7 +4,7 @@
 import random
 import time
 ###
-from nurse_mis import NurseMis, ObservationSpace
+from nurse_mis import NurseMis, ObservationSpace, Smart
 
 from paho.mqtt import client as mqtt_client
 
@@ -18,6 +18,7 @@ client_id = f'python-mqtt-{random.randint(0, 100)}'
 username = 'emqx'
 password = 'public'
 AnaNeri = NurseMis("Ana Neri", "Hi I am NURSE MIS!") # the first nurse in Brasil (1814)
+Brain = Smart("tflite_models/model_conv2d.tflite")
 House = ObservationSpace("House")
 
 def connect_mqtt() -> mqtt_client:
@@ -33,7 +34,7 @@ def connect_mqtt() -> mqtt_client:
     client.connect(broker, port)
     client.AnaNeri = AnaNeri
     client.House = House
-
+    client.Brain = Brain
     return client
 
 
@@ -44,11 +45,12 @@ def subscribe(client: mqtt_client):
         time.sleep(1)
         position = 7
         position = msg.payload.decode()[0]
-        #print(position,"\n\n\n\n")
+        print("position: ", position)
         AnaNeri.moveSubscribe(position, House)
+
         
     client.subscribe(topic)
-    client.subscribe(position)
+    #client.subscribe(position)
     client.on_message = on_message
 
 

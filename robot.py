@@ -4,6 +4,8 @@
 from email.mime import image
 import random
 import time
+from Smart import Smart
+
 ###
 from nurse_mis import NurseMis, ObservationSpace, Smart
 
@@ -62,22 +64,20 @@ def publish(client):
     time.sleep(1)
     AnaNeri.talk()
     position = AnaNeri.getImage()#movePublisher(House)
-
-    image = "tflite_models/george.png"
-
+    #image = AnaNeri.image()
         #tflite_model_predictions = Brain.interface(image) #how can I receive the image with protocols
         #print(Brain.modelImg(img))
         #plot_result(tflite_model_predictions, image)
 
-    msg = position #f"messages: {msg_count}"
+    msg = position
+    #msg = image
     result = client.publish(imageTopic, msg)
-        # result: [0, 1]
     status = result[0]
     if status == 0:
         print(f"Send to topic `{topic}`")
     else:
         print(f"Failed to send message to topic {topic}")
-        print(result)
+        #print(result)
     msg_count += 1
 
 def run():
@@ -87,7 +87,7 @@ def run():
         client.loop()
         image = AnaNeri.getImage()
         publish(client)
-        # Got messae, do work
+        # Got message, do work
         # done with work, continue
 
 
